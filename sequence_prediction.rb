@@ -2,33 +2,27 @@ require 'matrix'
 require_relative './learning_vector.rb'
 
 class SequencePrediction
-  attr_accessor :first_count, :second_count, :error, :step, :max_iteration, :predicted_number,
+  attr_accessor :window_size, :neurons_count, :error, :step, :predicted_number,
                 :sequence, :learning_vector, :vectors_length, :threshold, :weights_matrix, :ti
 
-  def initialize(first_count, second_count, error, step, max_iteration, predicted_number, sequence)
-    @first_count = first_count
-    @second_count = second_count
+  def initialize(first_count, second_count, error, step, predicted_number, sequence)
+    @window_size = first_count
+    @neurons_count = second_count
     @error = error
     @step = step
-    @max_iteration = max_iteration
     @predicted_number = predicted_number
     @sequence = sequence
 
     @learning_vectors = []
-    @vectors_length = 0
 
-    @threshold = 0
-    @weights_w = Matrix.build(@first_count + 1, @second_count) { Random.rand(-1.0..1.0) }
-    @weights_v = Matrix.build(@second_count, 1) { Random.rand(-1.0..1.0) }
+    @weights_w = Matrix.build(@window_size + 1, @neurons_count) { Random.rand(-0.1..0.1) }
+    @weights_v = Matrix.build(@neurons_count, 1) { Random.rand(-0.1..0.1) }
 
-    make_sequence
+    create_learning_vectors
   end
 
-
-  def run
-    temp_error = nil
+  def learning
     iteration = 0
-    @ti = Matrix[[0] * @second_count]
 
     loop do
       temp_error = 0
@@ -36,85 +30,82 @@ class SequencePrediction
 
       @learning_vectors.each do |vector|
         x = vector.vector
-        p = x * @weights_w - @ti
-        y = (p * @weights_v)[0,0] - @threshold
+        s = x * @weights_w
+        p_a = activation(s)
+        p_ap = activation_p(s)
+        y = s * @weights_v
+
         answer = vector.answer
+        delta = y[0, 0] - answer
+        set_context_neuron(y[0,0])
 
-        delta = y - answer
-
-        @weights_w = @weights_w - (@step * delta * x.transpose * @weights_v.transpose)
-        @weights_v = @weights_v - (@step * delta * p.transpose)
+        @weights_w = @weights_w - (@step * delta * x.t * p_ap * @weights_v * p_a)
+        @weights_v = @weights_v - (@step * delta * p_a.t)
       end
 
       set_context_neuron(0)
 
       @learning_vectors.each do |vector|
         x = vector.vector
-        p = x * @weights_w - @ti
-        y = (p * @weights_v)[0, 0] - @threshold
+        p = x * @weights_w
+        y = (p * @weights_v)[0, 0]
 
         answer = vector.answer
         delta = y - answer
+
         set_context_neuron(y)
         temp_error += get_error_degree(delta)
       end
 
       iteration += 1
-
-      break if temp_error > @error || iteration > @max_iteration
+      p "iteration: #{iteration} error: #{temp_error}"
+      break if temp_error <= @error
     end
-
-    predict_no
   end
 
-  private
+  def show
+    answer = []
+    answer.concat(@sequence)
+    answer << ':'
 
-  def make_sequence
-    (@sequence.size - @first_count).times do |index|
-      vector = LearningVector.new
-
-      vector.set_numbers(@sequence.slice(index, @first_count))
-      vector.set_answer(@sequence.at(index + @first_count))
-      @learning_vectors << vector
-    end
-
-    @vectors_length = @learning_vectors.size
-  end
-
-  def predict_no
-    vector_x = @learning_vectors[0].vector
-
-    @first_count.times do |index|
-      p "Input NO: #{index + 1} #{vector_x[0, index]}"
-    end
-
-    @learning_vectors.each_with_index do |vector, index|
-      x = vector.vector
-      p = x * @weights_w - @ti
-      y = (p * @weights_v)[0, 0] - @threshold
-
-      set_context_neuron(y)
-
-      p "Predict No #{index + @first_count + 1}: #{y}"
-    end
-
-    @predicted_number.times do |index|
+    @predicted_number.times do
       vector = LearningVector.new
 
       learning_vector = @learning_vectors.last.vector.row(0).to_a
 
-      vector.set_numbers(learning_vector.slice(1, @first_count + 1))
-      vector.set_context_neuron(@learning_vectors.last.vector[0, @first_count])
+      vector.set_numbers(learning_vector.slice(1, @window_size + 1))
+      vector.set_context_neuron(@learning_vectors.last.vector[0, @window_size])
       @learning_vectors << vector
 
       x = @learning_vectors.last.vector
-      p = x * @weights_w - @ti
-      y = (p * @weights_v)[0, 0] - @threshold
+      p = x * @weights_w
+      y = (p * @weights_v)[0, 0]
       @learning_vectors.last.set_context_neuron(y)
-      p "Predict NO #{@vectors_length + @first_count + 1}: #{y}"
+
+      answer << y.to_f.round(2)
     end
 
+    p answer.join(' ')
+  end
 
+  private
+
+  def activation(vector)
+    vector.map { |number| Math.log(number + Math.sqrt(number ** 2 + 1)) }
+  end
+
+  def activation_p(vector)
+    vector.map { |number| Math.log(1 / Math.sqrt(number ** 2 + 1)) }
+  end
+
+  def create_learning_vectors
+    (@sequence.size - @window_size).times do |index|
+      vector = LearningVector.new
+
+      vector.set_numbers(@sequence.slice(index, @window_size))
+      vector.set_answer(@sequence.at(index + @window_size))
+      @learning_vectors << vector
+    end
   end
 
   def get_error_degree(delta)
@@ -125,7 +116,6 @@ class SequencePrediction
     @learning_vectors.each do |vector|
       vector.set_context_neuron(neuron)
     end
-
   end
 
 end

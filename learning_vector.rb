@@ -15,21 +15,11 @@ class LearningVector
     @vector = Matrix[numbers]
   end
 
-  def size
-
-  end
-
-  def get_context_neuron
-
-  end
-
   def set_context_neuron(neuron)
-
-    @vector.send(:[]=, 0, @vector.column_count - 1, neuron) #Not the best solution, but..
+    @vector.send(:[]=, 0, @vector.column_count - 1, neuron)
   end
 
   def set_answer(answer)
     @answer = answer
   end
-
 end
