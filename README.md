@@ -19,16 +19,29 @@ The next step is to initialize the values ​​of the weights. Each weight is g
  
 Result of work
 -------
-**The Fibonacci sequence**
 
-_Network settings:_
- - window_size = 2;
- - neurons_size = 4;
- - error = 0.0048;
- - step = 0.00001;
- - Sequence (0, 1, 1, 2, 3, 5, 8, 13, 21, 34), 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946
- - The sample for the study: the first 10 numbers of the sequence;
- - The number of iterations performed: 33412;
+**Периодическая последовательность**
+
+_Параметры сети:_ 
+ - window_size = 4; 
+ - neurons_size = 8; 
+ - error = 0.0001; 
+ - step = 0.000001; 
+ - Последовательность: (15,-13,6,47,15,-13,6,47,15,-13,6,47), 15, -13, 6, 47, ... 
+ - Выборка для обучения: первых 12 чисел последовательности;
+ - Количество совершенных итераций: 56599;
+
+**Факториал**	
+
+_Параметры сети:_ 
+ - window_size = 3; 
+ - neurons_size = 6; 
+ - error = 0.05; 
+ - step = 0.000001;
+ - Последовательность: (1, 2, 6, 24, 120, 720, 5040), 40320, 362880, 3628800
+ - Выборка для обучения: первых 7 чисел последовательности;
+ - Количество совершенных итераций: 272688
+
 
 Example
 -------------

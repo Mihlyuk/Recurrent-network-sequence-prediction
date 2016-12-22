@@ -1,31 +1,20 @@
 require_relative './sequence_prediction.rb'
 
-p 'Введите количество нейронов на первом слое: '
+p 'Enter the number of neurons on the first layer: '
 window_size = (gets.chomp).to_i
-# window_size = 3
-
-p 'Введите количество нейронов на втором слое: '
+p 'Enter the number of neurons on the second layer: '
 neurons_count = (gets.chomp).to_i
-# neurons_count = 6
-
-p 'Введите ошибку: '
+p 'Input error: '
 error = gets.chomp.to_f
-# error = 1.6
-
-p 'Введите шаг: '
+p 'Input step: '
 step = (gets.chomp).to_f
-# step = 0.000001
-
-p 'Введите количество предсказанных чисел'
+p 'Enter the number of predicted numbers'
 predicted_number = (gets.chomp).to_i
-# predicted_number = 10
+p 'Enter the sequence'
 
-p 'Введите последовательность'
 sequence = gets.chomp.split(' ').map { |number| number.to_i }
-# sequence = [1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225]
 
 sequence = SequencePrediction.new(window_size, neurons_count, error, step, predicted_number, sequence)
-
 sequence.learning
 sequence.show
 
